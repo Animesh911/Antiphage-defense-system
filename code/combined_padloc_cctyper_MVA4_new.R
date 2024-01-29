@@ -1,4 +1,12 @@
-setwd("C:\\Users\\aku048\\OneDrive - UiT Office 365\\General - O365-CRISPER\\Analysis\\combined_padloc_cctyper_MVA")
+##########################################
+# 
+# R programming to analyze both padloc and cctyper output result
+# Perform MVA and plot PCA
+# 
+# Author: Animesh Kumar
+#
+###########################################
+
 library(dplyr)
 library(reshape2)
 library(tidyr)
@@ -8,11 +16,11 @@ library(FactoMineR)
 library(factoextra)
 
 # Read a tab-separated metadata file of defence system
-bact_defence_combined <- read.table("metadata_bact_defence_combined.txt", sep = "\t", header = TRUE)
+bact_defence_combined <- read.table("..\data\metadata_bact_defence_combined.txt", sep = "\t", header = TRUE)
 rownames(bact_defence_combined) <- bact_defence_combined[,1]  # both are CRISPRcas I-F and I-F_T
 
 #Read metadata of genomes
-metadata_genomes <- read.csv("metadata_genomes.txt", sep="\t", header=T) %>% as_tibble() %>% 
+metadata_genomes <- read.csv("..\data\metadata_genomes.txt", sep="\t", header=T) %>% as_tibble() %>% 
   distinct(accession_genbank, .keep_all = TRUE) %>% 
   filter(classification != "#N/A") %>%                                          # remove #N/A
   filter(!grepl("d__Archaea", classification)) %>%                              # remove archaea
@@ -37,7 +45,7 @@ library("xlsx")
 metadata_genomes %>% 
   select(accession_genbank, database, isol_env, host_species, dependent, oxygen_requirement, classification) %>% 
   as.data.frame() %>% 
-  write.xlsx(file = "C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/Table_supplementary_publication.xlsx", sheetName = "table4_metadata_genomes", append = FALSE, row.names = FALSE)
+  write.xlsx(file = "../final_figures_and_tables/Table_supplementary_publication.xlsx", sheetName = "table4_metadata_genomes", append = FALSE, row.names = FALSE)
 
 ########################
 
@@ -62,7 +70,7 @@ read.csv("all_padloc.csv") %>% as_tibble() %>%
   left_join(., metadata_genomes[, c("accession_genbank", "classification")], join_by(AccessionID == accession_genbank)) %>% 
   select(-gtdb) %>% 
   as.data.frame() %>% 
-  write.xlsx(file = "C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/Table_supplementary_publication.xlsx", sheetName = "table2_pAgo_protein", append = TRUE, row.names = FALSE)
+  write.xlsx(file = "../final_figures_and_tables/Table_supplementary_publication.xlsx", sheetName = "table2_pAgo_protein", append = TRUE, row.names = FALSE)
 
 
 ###################### table 4
@@ -78,15 +86,15 @@ read.csv("all_padloc.csv") %>% as_tibble() %>%
   left_join(., metadata_genomes[, c("accession_genbank", "classification")], join_by(AccessionID == accession_genbank)) %>% 
   select(-gtdb) %>% 
   as.data.frame() %>% 
-  write.xlsx(file = "C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/Table_supplementary_publication.xlsx", sheetName = "table3_retron_system", append = TRUE, row.names = FALSE)
+  write.xlsx(file = "../final_figures_and_tables/Table_supplementary_publication.xlsx", sheetName = "table3_retron_system", append = TRUE, row.names = FALSE)
 
 
 ####################
 # Fix the header
-fix_header <- colnames(read.csv("merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble()) #last header falls out in the blank column
+fix_header <- colnames(read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble()) #last header falls out in the blank column
 
 # Read the crispr file 
-crispr_data <- read.csv("merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble() %>%
+crispr_data <- read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble() %>%
   subset(!grepl("AccessionID", AccessionID)) %>%
   separate(col = "AccessionID", into = c("AccessionID", "Contig1"), sep = " ") %>% #accession and contigs were in same column1: seperate
   setNames(fix_header) %>% 
@@ -143,7 +151,7 @@ sys.pca.f <- PCA(fum_filter[-1], scale.unit = FALSE)  # scaling not necessary as
 
 systerm5_scree_plot.f <- fviz_eig(sys.pca.f, addlabels = TRUE)
 
-ggsave("C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/systerm5_scree_plot_f.png", bg="white", plot = systerm5_scree_plot.f, width = 6.25, height = 4.6, dpi = 600)
+ggsave("../final_figures_and_tables/systerm5_scree_plot_f.png", bg="white", plot = systerm5_scree_plot.f, width = 6.25, height = 4.6, dpi = 600)
 
 
 systerm6_pca_family_plot <- fviz_pca_var(sys.pca.f, col.var = "cos2", # col.var = "contrib", #col.var = "cos2", 
@@ -153,7 +161,7 @@ systerm6_pca_family_plot <- fviz_pca_var(sys.pca.f, col.var = "cos2", # col.var 
   theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank()) 
              #select.var = list(contrib = 10))
 
-ggsave("C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/systerm6_pca_family_plot.png", bg="white", plot = systerm6_pca_family_plot, width = 6.25, height = 4.6, dpi = 600)
+ggsave("../final_figures_and_tables/systerm6_pca_family_plot.png", bg="white", plot = systerm6_pca_family_plot, width = 6.25, height = 4.6, dpi = 600)
 
 
 #################### didn't worked ##########
