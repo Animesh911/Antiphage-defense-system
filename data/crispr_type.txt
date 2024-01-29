@@ -1,0 +1,21 @@
+Prediction	Subtype	crispr_type	crispr_class
+I-A	I-A	Type I	Class 1
+I-B	I-B	Type I	Class 1
+I-C	I-C	Type I	Class 1
+I-D	I-D	Type I	Class 1
+I-E	I-E	Type I	Class 1
+I-F	I-F	Type I	Class 1
+I-F_T	I-F	Type I	Class 1
+I-G	I-G	Type I	Class 1
+II-A	II-A	Type II	Class 2
+II-B	II-B	Type II	Class 2
+II-C	II-C	Type II	Class 2
+III-A	III-A	Type III	Class 1
+III-B	III-B	Type III	Class 1
+III-C	III-C	Type III	Class 1
+III-D	III-D	Type III	Class 1
+IV-A1	IV-A1	Type IV	Class 1
+V-A	V-A	Type V	Class 2
+V-K	V-K	Type V	Class 2
+VI-A	VI-A	Type VI	Class 2
+VI-B1	VI-B1	Type VI	Class 2
