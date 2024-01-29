@@ -1,4 +1,11 @@
-setwd("C:\\Users\\aku048\\OneDrive - UiT Office 365\\General - O365-CRISPER\\Analysis\\cctyper_results\\cctyper_analysis")
+##########################################
+# 
+# R programming to analyze cctyper output result
+# 
+# 
+# Author: Animesh Kumar
+#
+###########################################
 
 library(tidyr)
 library(dplyr) 
@@ -8,7 +15,7 @@ library(ggplot2)
 library(tidyverse)
 
 #Read metadata genomes
-metadata_genomes <- read.csv("metadata_genomes.txt", sep="\t", header=T) %>% as_tibble() %>% 
+metadata_genomes <- read.csv("..\data\metadata_genomes.txt", sep="\t", header=T) %>% as_tibble() %>% 
   distinct(accession_genbank, .keep_all = TRUE) %>% 
   filter(classification != "#N/A") %>%                                          # remove #N/A
   filter(!grepl("d__Archaea", classification)) %>%                              # remove archaea
@@ -28,7 +35,7 @@ metadata_genomes <- read.csv("metadata_genomes.txt", sep="\t", header=T) %>% as_
   ungroup()
 
 
-crispr_data <- read.csv("merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble() 
+crispr_data <- read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble() 
 
 # Fix the header
 fix_header <- colnames(crispr_data) #last header falls out in the blank column
@@ -48,7 +55,7 @@ crispr_metadata_genomes <- crispr_data %>%
 
 
 # Read a tab-separated metadata file
-crispr_type <- read.table("crispr_type.txt", sep = "\t", header = TRUE)
+crispr_type <- read.table("..\data\crispr_type.txt", sep = "\t", header = TRUE)
 rownames(crispr_type) <- crispr_type[,1]
 
 # Count total phylum in datasets
@@ -59,7 +66,7 @@ cas0_crisprtype_phylum_count_matrix <- crispr_metadata_genomes %>%
 
 cas0_crisprtype_phylum_count_matrix %>% 
   select(-Phylum_count_accession) %>% 
-  write.csv(., "C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/cas0_crisprtype_phylum_count_matrix.csv", row.names = FALSE)
+  write.csv(., "../final_figures_and_tables/cas0_crisprtype_phylum_count_matrix.csv", row.names = FALSE)
 
 # count geomes and crispr type
 cas1_crisprtype_phylum_heatmap_matrix <- cas0_crisprtype_phylum_count_matrix %>% 
@@ -79,7 +86,7 @@ cas1_crisprtype_phylum_heatmap_matrix <- cas0_crisprtype_phylum_count_matrix %>%
 cas1_crisprtype_phylum_heatmap_matrix %>% 
   ungroup() %>% 
   select(-Phylum_count) %>% 
-  write.csv(., "C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/cas1_crisprtype_phylum_heatmap_matrix.csv", row.names = FALSE)
+  write.csv(., "../final_figures_and_tables/cas1_crisprtype_phylum_heatmap_matrix.csv", row.names = FALSE)
 
 
 ######################### Number of systems per prokaryotic phylum #https://colorbrewer2.org/#type=sequential&scheme=Reds&n=3
@@ -102,7 +109,7 @@ cas1_crisprtype_phylum_heatmap_plot <- cas1_crisprtype_phylum_heatmap_matrix %>%
 
 cas1_crisprtype_phylum_heatmap_plot
 
-ggsave("C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/cas1_crisprtype_phylum_heatmap_plot.png", plot = cas1_crisprtype_phylum_heatmap_plot, width = 13, height = 5.5, dpi = 600)
+ggsave("../final_figures_and_tables/cas1_crisprtype_phylum_heatmap_plot.png", plot = cas1_crisprtype_phylum_heatmap_plot, width = 13, height = 5.5, dpi = 600)
 
 
 ############################## Distribution of CRISPR Cas Types 
@@ -119,7 +126,7 @@ cas2_crisprtype_phylum_distribution <- cas1_crisprtype_phylum_heatmap_matrix %>%
 
 
 cas2_crisprtype_phylum_distribution$data %>% 
-  write.csv(., "C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/cas2_crisprtype_phylum_distribution.csv", row.names = FALSE)
+  write.csv(., "../final_figures_and_tables/cas2_crisprtype_phylum_distribution.csv", row.names = FALSE)
 
 
-ggsave("C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/cas2_crisprtype_phylum_distribution_plot.png", plot = cas2_crisprtype_phylum_distribution, width = 4.39, height = 3.12, dpi = 600)
+ggsave("../final_figures_and_tables/cas2_crisprtype_phylum_distribution_plot.png", plot = cas2_crisprtype_phylum_distribution, width = 4.39, height = 3.12, dpi = 600)
