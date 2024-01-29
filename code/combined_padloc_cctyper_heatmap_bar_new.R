@@ -1,4 +1,12 @@
-setwd("C:\\Users\\aku048\\OneDrive - UiT Office 365\\General - O365-CRISPER\\Analysis\\combined_padloc_cctyper_MVA")
+##########################################
+# 
+# R programming to analyze both padloc and cctyper output result
+# Generates barplot and heatmap
+# 
+# Author: Animesh Kumar
+#
+###########################################
+
 library(dplyr)
 library(reshape2)
 library(tidyr)
@@ -6,11 +14,11 @@ library("ggplot2")
 library(tidyverse)
 
 # Read a tab-separated metadata file of defence system
-bact_defence_combined <- read.table("metadata_bact_defence_combined.txt", sep = "\t", header = TRUE)
+bact_defence_combined <- read.table("..\data\metadata_bact_defence_combined.txt", sep = "\t", header = TRUE)
 rownames(bact_defence_combined) <- bact_defence_combined[,1]  # both are CRISPRcas I-F and I-F_T
 
 #Read metadata of genomes
-metadata_genomes <- read.csv("metadata_genomes.txt", sep="\t", header=T) %>% as_tibble() %>% 
+metadata_genomes <- read.csv("..\data\metadata_genomes.txt", sep="\t", header=T) %>% as_tibble() %>% 
   distinct(accession_genbank, .keep_all = TRUE) %>% 
   filter(classification != "#N/A") %>%                                          # remove #N/A
   filter(!grepl("d__Archaea", classification)) %>%                              # remove archaea
@@ -31,7 +39,7 @@ metadata_genomes <- read.csv("metadata_genomes.txt", sep="\t", header=T) %>% as_
 
 
 # Read the padloc file
-padloc_data <- read.csv("all_padloc.csv") %>% as_tibble() %>% 
+padloc_data <- read.csv("..\data\all_padloc.csv") %>% as_tibble() %>% 
   filter(full.seq.E.value < 0.01) %>% 
   filter(domain.iE.value < 0.01) %>% 
   filter(target.coverage > 0.8) %>%
@@ -41,10 +49,10 @@ padloc_data <- read.csv("all_padloc.csv") %>% as_tibble() %>%
 
 
 # Fix the header
-fix_header <- colnames(read.csv("merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble()) #last header falls out in the blank column
+fix_header <- colnames(read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble()) #last header falls out in the blank column
 
 # Read the crispr file 
-crispr_data <- read.csv("merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble() %>%
+crispr_data <- read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble() %>%
   subset(!grepl("AccessionID", AccessionID)) %>%
   separate(col = "AccessionID", into = c("AccessionID", "Contig1"), sep = " ") %>% #accession and contigs were in same column1: seperate
   setNames(fix_header) %>% 
@@ -66,7 +74,7 @@ data0 <- rbind(padloc_data, crispr_data) %>%
 
 data0 %>% 
   select(-Phylum_count, -Phylum_count_accession, -Family_count, -Family_count_accession) %>% 
-  write.csv(., "C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/system0_count_matrix.csv", row.names = FALSE)
+  write.csv(., "../final_figures_and_tables/system0_count_matrix.csv", row.names = FALSE)
 
 #######################################
 ######################
@@ -94,7 +102,7 @@ system1_heatmap_phylum <- data0 %>%
 
 system1_heatmap_phylum %>% 
   separate(col = "Phylum_count", into = c("Phylum", "P_count"), sep = "\\n") %>%
-  write.csv(., "C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/system1_heatmap_phylum.csv", row.names = FALSE)
+  write.csv(., "../final_figures_and_tables/system1_heatmap_phylum.csv", row.names = FALSE)
 
 
 #library(tidyverse)
@@ -124,23 +132,9 @@ system1_heatmap_phylum_plot <- system1_heatmap_phylum %>%
 system1_heatmap_phylum_plot
 
 
-ggsave("C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/system1_heatmap_phylum_plot.png", plot = system1_heatmap_phylum_plot, width = 9, height = 4.6, dpi = 600)
+ggsave("../final_figures_and_tables/system1_heatmap_phylum_plot.png", plot = system1_heatmap_phylum_plot, width = 9, height = 4.6, dpi = 600)
 
 
-#######################################
-######################
-##                  ##
-##  HEATMAP CLASS   ##
-##                  ##
-######################
-#######################################
-#######################################
-######################
-##                  ##
-##  HEATMAP ORDER   ##
-##                  ##
-######################
-#######################################
 #######################################
 #######################
 ##                   ##
@@ -167,7 +161,7 @@ system2_heatmap_family <- data0 %>%
 
 system2_heatmap_family %>% 
   separate(col = "Family_count", into = c("Family", "F_count"), sep = "\\n") %>% 
-  write.csv(., "C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/system2_heatmap_family.csv", row.names = FALSE)
+  write.csv(., "../final_figures_and_tables/system2_heatmap_family.csv", row.names = FALSE)
 
 
 #library(tidyverse)
@@ -196,8 +190,7 @@ system2_heatmap_family_plot <- system2_heatmap_family %>%
 
 system2_heatmap_family_plot
 
-
-ggsave("C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/system2_heatmap_family_plot.png", plot = system2_heatmap_family_plot, width = 10, height = 9, dpi = 600)
+ggsave("../final_figures_and_tables/system2_heatmap_family_plot.png", plot = system2_heatmap_family_plot, width = 10, height = 9, dpi = 600)
 
 
 #######################################
@@ -227,7 +220,7 @@ system3_percentage_of_genomes <- data0 %>% select(AccessionID, bact_defence_syst
   mutate(bact_defence_system = recode(bact_defence_system, "CRISPR-Cas_cctyper" = "CRISPR-Cas"))
 
 system3_percentage_of_genomes %>% 
-  write.csv(., "C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/system3_percentage_of_genomes.csv", row.names = FALSE)
+  write.csv(., "../final_figures_and_tables/system3_percentage_of_genomes.csv", row.names = FALSE)
 
 
 system3_percentage_of_genomes_barplot <- system3_percentage_of_genomes %>% 
@@ -246,7 +239,7 @@ system3_percentage_of_genomes_barplot <- system3_percentage_of_genomes %>%
 
 system3_percentage_of_genomes_barplot
 
-ggsave("C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/system3_percentage_of_genomes_barplot.png", bg="white", plot = system3_percentage_of_genomes_barplot, width = 6.25, height = 4.6, dpi = 600)
+ggsave("../final_figures_and_tables/system3_percentage_of_genomes_barplot.png", bg="white", plot = system3_percentage_of_genomes_barplot, width = 6.25, height = 4.6, dpi = 600)
 
 ###########################################
 # Abundance of CRISPR-Cas and other systems in cold-living bacteria: VENN diagram
@@ -295,7 +288,7 @@ system4_venn_plot <- ggvenn(
 
 system4_venn_plot
 
-ggsave("C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/system4_venn_plot.png", bg="white", plot = system4_venn_plot, width = 7, height = 5.5, dpi = 600)
+ggsave("../final_figures_and_tables/system4_venn_plot.png", bg="white", plot = system4_venn_plot, width = 7, height = 5.5, dpi = 600)
 
 ###########################################
 # Abundance of CRISPR-Cas and other systems in cold-living bacteria: PIE diagram
@@ -326,6 +319,6 @@ cas3_pie_plot <- ggplot(pie_data, aes(x = "", y = percentage_system_genome, fill
 
 cas3_pie_plot
 
-ggsave("C:/Users/aku048/OneDrive - UiT Office 365/General - O365-CRISPER/Analysis/final_figures_and_tables/cas3_pie_plot.png", bg="white", plot = cas3_pie_plot, width = 5.4, height = 3.5, dpi = 600)
+ggsave("../final_figures_and_tables/cas3_pie_plot.png", bg="white", plot = cas3_pie_plot, width = 5.4, height = 3.5, dpi = 600)
 
 ###########################################
