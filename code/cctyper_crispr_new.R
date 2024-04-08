@@ -1,8 +1,8 @@
 ##########################################
 # 
-# R programming to analyze cctyper output result
-# 
-# 
+# R programming to analyze CRISPRCasTyper (cctyper) output result
+# Genomes are already classified using GTDB-Tk
+#
 # Author: Animesh Kumar
 #
 ###########################################
@@ -10,15 +10,14 @@
 library(tidyr)
 library(dplyr) 
 library(reshape2)
-#library(phyloseq)
 library(ggplot2)
 library(tidyverse)
 
 #Read metadata genomes
 metadata_genomes <- read.csv("..\data\metadata_genomes.txt", sep="\t", header=T) %>% as_tibble() %>% 
   distinct(accession_genbank, .keep_all = TRUE) %>% 
-  filter(classification != "#N/A") %>%                                          # remove #N/A
-  filter(!grepl("d__Archaea", classification)) %>%                              # remove archaea
+  filter(classification != "#N/A") %>%                                                  # remove #N/A
+  filter(!grepl("d__Archaea", classification)) %>%                                      # remove archaea
   mutate(gtdb_copy = classification) %>%
   separate(col = gtdb_copy, into = paste0("Column_", 1:7), sep = ";") %>%
   mutate(across(starts_with("Column_2"), ~str_replace(., "_A$|_B$|_F$", ""), .names = "Phylum")) %>% 
@@ -34,31 +33,32 @@ metadata_genomes <- read.csv("..\data\metadata_genomes.txt", sep="\t", header=T)
   mutate(Family_count_accession = paste(Family_count, accession_genbank, sep = " ")) %>% 
   ungroup()
 
-
+#Read crisprs_near_cas as predicted by CRISPRCasTyper
 crispr_data <- read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble() 
 
 # Fix the header
 fix_header <- colnames(crispr_data) #last header falls out in the blank column
 
-#merge metadata_genome with crispr data: includes rows with no CRISPR  leads to  # AccessionID: 938 bacterial
+#merge metadata_genome with crispr_data: includes rows with no CRISPR leads to          # AccessionID: 938 bacterial
 crispr_metadata_genomes <- crispr_data %>%                                 
   subset(!grepl("AccessionID", AccessionID)) %>% 
-  separate(col = "AccessionID", into = c("AccessionID", "Contig1"), sep = " ") %>% #accession and contigs were in same column1: seperate
+  separate(col = "AccessionID", into = c("AccessionID", "Contig1"), sep = " ") %>%      # Seperate accession and contigs which are in same column 1
   setNames(fix_header) %>% 
   select(-ncol(.)) %>% # remove last column due to header mismatch  
-  separate(col = "AccessionID", into = c("AccessionID", "version"), sep = "\\.") %>%    #due to absence of version in some will receive warning: Expected 2 pieces. Missing pieces filled with `NA` in 244 rows [107, 108, ...
-  select(-version)  %>%     # warning due to version
+  separate(col = "AccessionID", into = c("AccessionID", "version"), sep = "\\.") %>%    # Due to the absence of genome version, it will give warning as "Expected 2 pieces. Missing pieces filled with `NA` in 244 rows [107, 108, ...]"
+  select(-version)  %>%                                                                 # Warning due to version
   left_join(., metadata_genomes, join_by(AccessionID == accession_genbank)) %>% 
-  filter(classification != "#N/A") %>%                                          # remove #N/A
-  filter(!grepl("d__Archaea", classification)) %>%                                  # NO archaea all converted to #N/A
+  filter(classification != "#N/A") %>%                                                  # filter #N/A
+  filter(!grepl("d__Archaea", classification)) %>%                                      # filter archaea, if any, all converted to #N/A
   filter(Subtype_probability > 0.75)
 
-
-# Read a tab-separated metadata file
+# Read a tab-separated CRISPR type file
 crispr_type <- read.table("..\data\crispr_type.txt", sep = "\t", header = TRUE)
 rownames(crispr_type) <- crispr_type[,1]
 
-# Count total phylum in datasets
+
+######################### Plot Number of systems per prokaryotic phylum
+# Count total phylum in prokaryotic datasets
 cas0_crisprtype_phylum_count_matrix <- crispr_metadata_genomes %>%
   select(Phylum, Phylum_count_accession, P_count, AccessionID, Subtype) %>% 
   left_join(., crispr_type, join_by(Subtype == Prediction)) %>% 
@@ -68,7 +68,7 @@ cas0_crisprtype_phylum_count_matrix %>%
   select(-Phylum_count_accession) %>% 
   write.csv(., "../final_figures_and_tables/cas0_crisprtype_phylum_count_matrix.csv", row.names = FALSE)
 
-# count geomes and crispr type
+# count genomes falling under a particular phylum and respective CRISPR type
 cas1_crisprtype_phylum_heatmap_matrix <- cas0_crisprtype_phylum_count_matrix %>% 
   count(Phylum_count_accession, Subtype.y) %>% 
   pivot_wider(names_from = Subtype.y, values_from = n, values_fill = 0) %>% #A tibble: 166 × 20
@@ -83,13 +83,7 @@ cas1_crisprtype_phylum_heatmap_matrix <- cas0_crisprtype_phylum_count_matrix %>%
   left_join(., crispr_type %>% distinct(Subtype, .keep_all = TRUE), by = "Subtype") %>%
   select(-accession, -crispr_count) 
 
-cas1_crisprtype_phylum_heatmap_matrix %>% 
-  ungroup() %>% 
-  select(-Phylum_count) %>% 
-  write.csv(., "../final_figures_and_tables/cas1_crisprtype_phylum_heatmap_matrix.csv", row.names = FALSE)
-
-
-######################### Number of systems per prokaryotic phylum #https://colorbrewer2.org/#type=sequential&scheme=Reds&n=3
+# PLOT
 library(ggh4x)
 
 cas1_crisprtype_phylum_heatmap_plot <- cas1_crisprtype_phylum_heatmap_matrix %>% 
@@ -106,13 +100,11 @@ cas1_crisprtype_phylum_heatmap_plot <- cas1_crisprtype_phylum_heatmap_matrix %>%
         strip.text = element_text(size = 13),
         legend.key.height=grid::unit(2, "cm"), legend.key.width=grid::unit(0.3, "cm")) 
 
-
 cas1_crisprtype_phylum_heatmap_plot
 
 ggsave("../final_figures_and_tables/cas1_crisprtype_phylum_heatmap_plot.png", plot = cas1_crisprtype_phylum_heatmap_plot, width = 13, height = 5.5, dpi = 600)
 
-
-############################## Distribution of CRISPR Cas Types 
+############################## Plot Distribution of CRISPR Cas Types in phylum dataset
 cas2_crisprtype_phylum_distribution <- cas1_crisprtype_phylum_heatmap_matrix %>% ungroup() %>% 
   select(Subtype, Total_number_of_different_crisprtype_per_prokaryotic_genomes, crispr_class) %>%
   filter(Total_number_of_different_crisprtype_per_prokaryotic_genomes > 0) %>% 
@@ -123,10 +115,5 @@ cas2_crisprtype_phylum_distribution <- cas1_crisprtype_phylum_heatmap_matrix %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), 
         strip.placement = "outside", strip.background.x = element_blank(),
         axis.line.y = element_blank(), axis.ticks.y = element_blank()) + labs(y = "", x = "") + scale_y_continuous(expand = c(0, 0))  
-
-
-cas2_crisprtype_phylum_distribution$data %>% 
-  write.csv(., "../final_figures_and_tables/cas2_crisprtype_phylum_distribution.csv", row.names = FALSE)
-
 
 ggsave("../final_figures_and_tables/cas2_crisprtype_phylum_distribution_plot.png", plot = cas2_crisprtype_phylum_distribution, width = 4.39, height = 3.12, dpi = 600)
