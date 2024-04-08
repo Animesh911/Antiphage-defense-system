@@ -1,6 +1,6 @@
 ##########################################
 # 
-# R programming to analyze both padloc and cctyper output result
+# R programming to analyze both PADLOC and CRISPRCasTyper (cctyper) output result
 # Generates barplot and heatmap
 # 
 # Author: Animesh Kumar
@@ -10,7 +10,7 @@
 library(dplyr)
 library(reshape2)
 library(tidyr)
-library("ggplot2")
+library(ggplot2)
 library(tidyverse)
 
 # Read a tab-separated metadata file of defence system
