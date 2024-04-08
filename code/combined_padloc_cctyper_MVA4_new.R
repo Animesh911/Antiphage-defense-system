@@ -98,8 +98,8 @@ crispr_data <- read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=
   separate(col = "AccessionID", into = c("AccessionID", "Contig1"), sep = " ") %>% #accession and contigs were in same column1: seperate
   setNames(fix_header) %>% 
   select(-ncol(.)) %>% # remove last column due to header mismatch  
-  separate(col = "AccessionID", into = c("AccessionID", "version"), sep = "\\.") %>%    #due to absence of version in some will receive warning: Expected 2 pieces. Missing pieces filled with `NA` in 244 rows [107, 108, ...
-  filter(Subtype_probability > 0.75) %>% # number could be higher due to presence of !bacteria or 231
+  separate(col = "AccessionID", into = c("AccessionID", "version"), sep = "\\.") %>%                                                                                       # due to absence of version in some will receive warning: Expected 2 pieces. Missing pieces filled with `NA` in 244 rows [107, 108, ...
+  filter(Subtype_probability > 0.75) %>% # number could be higher due to the presence of !bacteria or 231
   rename(system = Subtype) %>% 
   select(AccessionID, system)     # warning due to version
 
@@ -112,15 +112,15 @@ data0 <- rbind(padloc_data, crispr_data) %>%
   summarise(Frequency = n()) %>%
   ungroup() %>% 
   full_join(., metadata_genomes, join_by(AccessionID == accession_genbank)) %>% 
-  filter(classification != "#N/A") %>%                                          # already removed archaea turns into #N/A
-  filter(!grepl("d__Archaea", classification)) %>%                              # already removed archaea
+  filter(classification != "#N/A") %>%                                                                              # already removed archaea turns into #N/A
+  filter(!grepl("d__Archaea", classification)) %>%                                                                  # already removed archaea
   left_join(., bact_defence_combined, join_by(system == system_type)) %>% 
   mutate(bact_defence_system = recode(bact_defence_system, "CRISPR-Cas_cctyper" = "CRISPR-Cas"))
 
 
 # filter data to crate matrix
 system_unitary_matrix <- data0 %>% select(AccessionID, bact_defence_system, Frequency, Phylum, Phylum_count, Family, Family_count) %>% 
-  mutate(Frequency = as.integer(Frequency > 0)) %>%                             # convert to unitary matrix
+  mutate(Frequency = as.integer(Frequency > 0)) %>%                                                                  # convert to unitary matrix
   distinct() %>% 
   pivot_wider(names_from = bact_defence_system, values_from = Frequency, values_fill = 0) %>% 
   select(-`NA`, -`CRISPR-Cas_padloc`, -DMS) 
@@ -129,14 +129,14 @@ system_unitary_matrix <- data0 %>% select(AccessionID, bact_defence_system, Freq
 ################################################# TRY 1 keep unitary matrix, to match heatmap select family genome count > 5, 
 fum <- system_unitary_matrix %>% 
   separate(col = "Family_count", into = c("Family", "F_count"), sep = "\n") %>% 
-  filter(as.integer(F_count) > 5) %>%                                           # filter Family to match heatmap select family genome count > 5
+  filter(as.integer(F_count) > 5) %>%                                                                               # filter Family to match heatmap select family genome count > 5
   select(-AccessionID, -Phylum, -Phylum_count, -F_count) %>% 
-  mutate(system_sum = rowSums(select(., -1))) %>%                               # 1 sum1 all system for a family row or remove zero row
+  mutate(system_sum = rowSums(select(., -1))) %>%                                                                   # 1 sum1 all system for a family row or remove zero row
   bind_rows(summarise(.data = ., across(where(is.numeric), sum, na.rm = TRUE), Family = "fam_sum"))  # 2 sum2 all system individually, will through error with across()
 
 fum_filter <- fum %>% 
-  filter(as.integer(system_sum) > 0) %>%                                        # filter sum1, or remove row/genome with zero value
-  select(where(~last(.) > 5)) %>%                                               # filter sum2, or remove column/system with more 5 value
+  filter(as.integer(system_sum) > 0) %>%                                                                            # filter sum1, or remove row/genome with zero value
+  select(where(~last(.) > 5)) %>%                                                                                   # filter sum2, or remove column/system with more 5 value
   select(-system_sum) %>% 
   filter(Family != "fam_sum") %>%
   mutate(Family = factor(Family))
@@ -198,14 +198,14 @@ fviz_pca_biplot(sys.pca, pointshape = 21, pointsize = 2.5,#pointsize = "cos2",
 ################################################# TRY 2 keep unitary matrix, to match heatmap select phylum genome count > 5, 
 phy <- system_unitary_matrix %>% 
   separate(col = "Phylum_count", into = c("Phylum", "P_count"), sep = "\n") %>% 
-  filter(as.integer(P_count) > 5) %>%                                           # filter Family to match heatmap select family genome count > 5
+  filter(as.integer(P_count) > 5) %>%                                                                               # filter Family to match heatmap select family genome count > 5
   select(-AccessionID, -Family, -Family_count, -P_count) %>% 
-  mutate(system_sum = rowSums(select(., -1))) %>%                               # 1 sum1 all system for a family row or remove zero row
+  mutate(system_sum = rowSums(select(., -1))) %>%                                                                   # 1 sum1 all system for a family row or remove zero row
   bind_rows(summarise(.data = ., across(where(is.numeric), sum, na.rm = TRUE), Phylum = "phy_sum"))  # 2 sum2 all system individually, will through error with across()
 
 phy_filter <- phy %>% 
-  filter(as.integer(system_sum) > 0) %>%                                        # filter sum1, or remove row/genome with zero value
-  select(where(~last(.) > 5)) %>%                                               # filter sum2, or remove column/system with more 5 value
+  filter(as.integer(system_sum) > 0) %>%                                                                            # filter sum1, or remove row/genome with zero value
+  select(where(~last(.) > 5)) %>%                                                                                   # filter sum2, or remove column/system with more 5 value
   select(-system_sum) %>% 
   filter(Phylum != "phy_sum") %>%
   mutate(Phylum = factor(Phylum))
@@ -231,8 +231,8 @@ systerm8_pca_phylum_plot
 #Q1 Genomes with CRISPR present, which other system present 
 
 phy_filter_cas_p <- phy %>% 
-  filter(as.integer(system_sum) > 0) %>%                                        # filter sum1, or remove row/genome with zero value
-  select(where(~last(.) > 5)) %>%                                               # filter sum2, or remove column/system with more 5 value
+  filter(as.integer(system_sum) > 0) %>%                                                                            # filter sum1, or remove row/genome with zero value
+  select(where(~last(.) > 5)) %>%                                                                                   # filter sum2, or remove column/system with more 5 value
   select(-system_sum) %>% 
   filter(Phylum != "phy_sum") %>%
   mutate(Phylum = factor(Phylum)) %>% 
@@ -240,8 +240,8 @@ phy_filter_cas_p <- phy %>%
   #select(-`CRISPR-Cas`)
 
 fum_filter_cas_p <- fum %>% 
-  filter(as.integer(system_sum) > 0) %>%                                        # filter sum1, or remove row/genome with zero value
-  select(where(~last(.) > 5)) %>%                                               # filter sum2, or remove column/system with more 5 value
+  filter(as.integer(system_sum) > 0) %>%                                                                            # filter sum1, or remove row/genome with zero value
+  select(where(~last(.) > 5)) %>%                                                                                   # filter sum2, or remove column/system with more 5 value
   select(-system_sum) %>% 
   filter(Family != "fam_sum") %>%
   mutate(Family = factor(Family)) %>% 
@@ -277,8 +277,8 @@ fviz_pca_var(sys.pca.f_p, col.var = "cos2", # col.var = "contrib", #col.var = "c
 #Q2 Genomes when CRISPR not present, which system present
 
 phy_filter_cas_a <- phy %>% 
-  filter(as.integer(system_sum) > 0) %>%                                        # filter sum1, or remove row/genome with zero value
-  select(where(~last(.) > 5)) %>%                                               # filter sum2, or remove column/system with more 5 value
+  filter(as.integer(system_sum) > 0) %>%                                                                                      # filter sum1, or remove row/genome with zero value
+  select(where(~last(.) > 5)) %>%                                                                                             # filter sum2, or remove column/system with more 5 value
   select(-system_sum) %>% 
   filter(Phylum != "phy_sum") %>%
   mutate(Phylum = factor(Phylum)) %>% 
@@ -286,8 +286,8 @@ phy_filter_cas_a <- phy %>%
 #select(-`CRISPR-Cas`)
 
 fum_filter_cas_a <- fum %>% 
-  filter(as.integer(system_sum) > 0) %>%                                        # filter sum1, or remove row/genome with zero value
-  select(where(~last(.) > 5)) %>%                                               # filter sum2, or remove column/system with more 5 value
+  filter(as.integer(system_sum) > 0) %>%                                                                                     # filter sum1, or remove row/genome with zero value
+  select(where(~last(.) > 5)) %>%                                                                                            # filter sum2, or remove column/system with more 5 value
   select(-system_sum) %>% 
   filter(Family != "fam_sum") %>%
   mutate(Family = factor(Family)) %>% 
