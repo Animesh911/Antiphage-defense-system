@@ -1,6 +1,6 @@
 ##########################################
 # 
-# R programming to analyze both padloc and cctyper output result
+# R programming to analyze both PADLOC and CRISPRCasTyper (cctyper) output result
 # Perform MVA and plot PCA
 # 
 # Author: Animesh Kumar
@@ -10,20 +10,20 @@
 library(dplyr)
 library(reshape2)
 library(tidyr)
-library("ggplot2")
+library(ggplot2)
 library(tidyverse)
 library(FactoMineR)
 library(factoextra)
 
 # Read a tab-separated metadata file of defence system
 bact_defence_combined <- read.table("..\data\metadata_bact_defence_combined.txt", sep = "\t", header = TRUE)
-rownames(bact_defence_combined) <- bact_defence_combined[,1]  # both are CRISPRcas I-F and I-F_T
+rownames(bact_defence_combined) <- bact_defence_combined[,1]                    # both are CRISPRcas I-F and I-F_T
 
 #Read metadata of genomes
 metadata_genomes <- read.csv("..\data\metadata_genomes.txt", sep="\t", header=T) %>% as_tibble() %>% 
   distinct(accession_genbank, .keep_all = TRUE) %>% 
-  filter(classification != "#N/A") %>%                                          # remove #N/A
-  filter(!grepl("d__Archaea", classification)) %>%                              # remove archaea
+  filter(classification != "#N/A") %>%                                          # filter #N/A
+  filter(!grepl("d__Archaea", classification)) %>%                              # filter archaea
   mutate(gtdb_copy = classification) %>%
   separate(col = gtdb_copy, into = paste0("Column_", 1:7), sep = ";") %>%
   mutate(across(starts_with("Column_2"), ~str_replace(., "_A$|_B$|_F$", ""), .names = "Phylum")) %>% 
@@ -39,18 +39,17 @@ metadata_genomes <- read.csv("..\data\metadata_genomes.txt", sep="\t", header=T)
   mutate(Family_count_accession = paste(Family_count, accession_genbank, sep = " ")) %>% 
   ungroup()
 
-######################## Table 3
+######################## Metadata genomes S1
 library("xlsx")
 
 metadata_genomes %>% 
   select(accession_genbank, database, isol_env, host_species, dependent, oxygen_requirement, classification) %>% 
   as.data.frame() %>% 
-  write.xlsx(file = "../final_figures_and_tables/Table_supplementary_publication.xlsx", sheetName = "table4_metadata_genomes", append = FALSE, row.names = FALSE)
+  write.xlsx(file = "../final_figures_and_tables/Table_supplementary_publication.xlsx", sheetName = "tableS1_metadata_genomes", append = FALSE, row.names = FALSE)
 
 ########################
-
-# Read the padloc file
-padloc_data <- read.csv("all_padloc.csv") %>% as_tibble() %>% 
+# Read the PADLOC output file
+padloc_data <- read.csv("..\data\all_padloc.tab") %>% as_tibble() %>% 
   filter(full.seq.E.value < 0.01) %>% 
   filter(domain.iE.value < 0.01) %>% 
   filter(target.coverage > 0.8) %>%
@@ -58,7 +57,7 @@ padloc_data <- read.csv("all_padloc.csv") %>% as_tibble() %>%
   distinct(AccessionID, system, system.number) %>% 
   select(AccessionID, system)
 
-#################### table 3
+#################### table S3
 # pAgo proteins in cold-adapted bacteria
 read.csv("all_padloc.csv") %>% as_tibble() %>% 
   filter(full.seq.E.value < 0.01) %>% 
@@ -73,7 +72,7 @@ read.csv("all_padloc.csv") %>% as_tibble() %>%
   write.xlsx(file = "../final_figures_and_tables/Table_supplementary_publication.xlsx", sheetName = "table2_pAgo_protein", append = TRUE, row.names = FALSE)
 
 
-###################### table 4
+###################### table S4
 # pAgo proteins in cold-adapted bacteria
 read.csv("all_padloc.csv") %>% as_tibble() %>% 
   filter(full.seq.E.value < 0.01) %>% 
