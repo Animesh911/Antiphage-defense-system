@@ -1,7 +1,7 @@
 ##########################################
 # 
 # R programming to analyze both PADLOC and CRISPRCasTyper (cctyper) output result
-# Perform MVA and plot PCA
+# Plot PCA
 # 
 # Author: Animesh Kumar
 #
