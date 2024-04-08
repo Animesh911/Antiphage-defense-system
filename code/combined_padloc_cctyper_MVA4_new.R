@@ -90,23 +90,23 @@ read.csv("all_padloc.csv") %>% as_tibble() %>%
 
 ####################
 # Fix the header
-fix_header <- colnames(read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble()) #last header falls out in the blank column
+fix_header <- colnames(read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble())         #fix column header as last header falls out in the blank column
 
-# Read the crispr file 
+# Read the crispr result file 
 crispr_data <- read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble() %>%
   subset(!grepl("AccessionID", AccessionID)) %>%
-  separate(col = "AccessionID", into = c("AccessionID", "Contig1"), sep = " ") %>% #accession and contigs were in same column1: seperate
+  separate(col = "AccessionID", into = c("AccessionID", "Contig1"), sep = " ") %>%                                   # separate accession and contigs which are in same column1
   setNames(fix_header) %>% 
   select(-ncol(.)) %>% # remove last column due to header mismatch  
-  separate(col = "AccessionID", into = c("AccessionID", "version"), sep = "\\.") %>%                                                                                       # due to absence of version in some will receive warning: Expected 2 pieces. Missing pieces filled with `NA` in 244 rows [107, 108, ...
-  filter(Subtype_probability > 0.75) %>% # number could be higher due to the presence of !bacteria or 231
+  separate(col = "AccessionID", into = c("AccessionID", "version"), sep = "\\.") %>%                                 # due to absence of version in some will receive warning: Expected 2 pieces. Missing pieces filled with `NA` in 244 rows [107, 108, ...
+  filter(Subtype_probability > 0.75) %>%                                                                             # number could be higher due to the presence of non prokaryotes (!bacteria or 231)
   rename(system = Subtype) %>% 
-  select(AccessionID, system)     # warning due to version
+  select(AccessionID, system)                                                                                        # warning due to genome version
 
 # Fix the header
-#fix_header <- colnames(crispr_data) #last header falls out in the blank column
+#fix_header <- colnames(crispr_data)                                                                                 # fix header, as last header falls out in the blank column
 
-# Append padloc_data0 and crispr_data0 and metadata of genomes and metadata of defence system
+# Append padloc_data0 and crispr_data0 and metadata_genomes and bact_defence_combined
 data0 <- rbind(padloc_data, crispr_data) %>%
   group_by(AccessionID, system) %>%
   summarise(Frequency = n()) %>%
@@ -118,7 +118,7 @@ data0 <- rbind(padloc_data, crispr_data) %>%
   mutate(bact_defence_system = recode(bact_defence_system, "CRISPR-Cas_cctyper" = "CRISPR-Cas"))
 
 
-# filter data to crate matrix
+# create unitary matrix
 system_unitary_matrix <- data0 %>% select(AccessionID, bact_defence_system, Frequency, Phylum, Phylum_count, Family, Family_count) %>% 
   mutate(Frequency = as.integer(Frequency > 0)) %>%                                                                  # convert to unitary matrix
   distinct() %>% 
