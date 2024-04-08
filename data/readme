@@ -8,4 +8,4 @@ metadata_bact_defence_combined.txt: Bacterial defense system and its subtypes
 crispr_type.txt: CRISPR class, type and subtypes
 
 PADLOC output:
-all_padloc.txt: Antiviral defence systems as predicted by PADLOC in prokaryotic genomes
+all_padloc.tab: Antiviral defence systems as predicted by PADLOC in prokaryotic genomes
