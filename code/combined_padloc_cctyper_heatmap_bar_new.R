@@ -15,13 +15,13 @@ library(tidyverse)
 
 # Read a tab-separated metadata file of defence system
 bact_defence_combined <- read.table("..\data\metadata_bact_defence_combined.txt", sep = "\t", header = TRUE)
-rownames(bact_defence_combined) <- bact_defence_combined[,1]  # both are CRISPRcas I-F and I-F_T
+rownames(bact_defence_combined) <- bact_defence_combined[,1]                                                      # both are CRISPRcas subsystems I-F and I-F_T
 
-#Read metadata of genomes
+# Read metadata of genomes
 metadata_genomes <- read.csv("..\data\metadata_genomes.txt", sep="\t", header=T) %>% as_tibble() %>% 
   distinct(accession_genbank, .keep_all = TRUE) %>% 
-  filter(classification != "#N/A") %>%                                          # remove #N/A
-  filter(!grepl("d__Archaea", classification)) %>%                              # remove archaea
+  filter(classification != "#N/A") %>%                                                                            # filter #N/A
+  filter(!grepl("d__Archaea", classification)) %>%                                                                # filter archaea
   mutate(gtdb_copy = classification) %>%
   separate(col = gtdb_copy, into = paste0("Column_", 1:7), sep = ";") %>%
   mutate(across(starts_with("Column_2"), ~str_replace(., "_A$|_B$|_F$", ""), .names = "Phylum")) %>% 
@@ -49,18 +49,18 @@ padloc_data <- read.csv("..\data\all_padloc.csv") %>% as_tibble() %>%
 
 
 # Fix the header
-fix_header <- colnames(read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble()) #last header falls out in the blank column
+fix_header <- colnames(read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble())         # last header falls out in the blank column
 
 # Read the crispr file 
 crispr_data <- read.csv("..\data\merged_crisprs_near_cas.tab", sep="\t", header=T) %>% as_tibble() %>%
   subset(!grepl("AccessionID", AccessionID)) %>%
-  separate(col = "AccessionID", into = c("AccessionID", "Contig1"), sep = " ") %>% #accession and contigs were in same column1: seperate
+  separate(col = "AccessionID", into = c("AccessionID", "Contig1"), sep = " ") %>%                                  # Seperate accession and contigs which are in same column 1
   setNames(fix_header) %>% 
-  select(-ncol(.)) %>% # remove last column due to header mismatch  
-  separate(col = "AccessionID", into = c("AccessionID", "version"), sep = "\\.") %>%    #due to absence of version in some will receive warning: Expected 2 pieces. Missing pieces filled with `NA` in 244 rows [107, 108, ...
-  filter(Subtype_probability > 0.75) %>% # number could be higher due to presence of !bacteria or 231
+  select(-ncol(.)) %>%                                                                                              # remove last column due to header mismatch  
+  separate(col = "AccessionID", into = c("AccessionID", "version"), sep = "\\.") %>%                                # Due to the absence of genome version, it will give warning as "Expected 2 pieces. Missing pieces filled with `NA` in 244 rows [107, 108, ...]"
+  filter(Subtype_probability > 0.75) %>%                                                                            # number could be higher due to presence of !bacteria or 231
   rename(system = Subtype) %>% 
-  select(AccessionID, system)     # warning due to version
+  select(AccessionID, system)                                                                                       # warning due to version
 
 # Append padloc_data0 and crispr_data0 and metadata of genomes and metadata of defence system
 data0 <- rbind(padloc_data, crispr_data) %>%
@@ -68,8 +68,8 @@ data0 <- rbind(padloc_data, crispr_data) %>%
   summarise(Frequency = n()) %>%
   ungroup() %>% 
   full_join(., metadata_genomes, join_by(AccessionID == accession_genbank)) %>% 
-  filter(classification != "#N/A") %>%                                          # already removed archaea turns into #N/A
-  filter(!grepl("d__Archaea", classification)) %>%                              # already removed archaea
+  filter(classification != "#N/A") %>%                                                                            # filter, already removed archaea turns into #N/A
+  filter(!grepl("d__Archaea", classification)) %>%                                                                # filter, already removed archaea
   left_join(., bact_defence_combined, join_by(system == system_type))
 
 data0 %>% 
@@ -84,7 +84,7 @@ data0 %>%
 ######################
 #######################################
 system1_heatmap_phylum <- data0 %>%
-  filter(Frequency>0) %>%                                                       # filter(system != "N/A") or remove genome having no system
+  filter(Frequency>0) %>%                                                                                       # filter(system != "N/A") or remove genome having no system
   count(Phylum_count_accession, bact_defence_system) %>% 
   pivot_wider(names_from = bact_defence_system, values_from = n, values_fill = 0) %>% # A tibble: 883 × 53
   pivot_longer(cols = -Phylum_count_accession, names_to = "bact_defence_system", values_to = "system_count") %>% # A tibble: 45,916 × 3
@@ -94,7 +94,7 @@ system1_heatmap_phylum <- data0 %>%
   separate(col = "Phylum_count1", into = c("Phylum", "P_count"), sep = "\\n") %>% 
   mutate(Number_of_phylum_containing_each_system = sum(system_count > 0), "Total_number_of_different_system_per_prokaryotic_genomes" = sum(system_count)) %>%
   mutate(Frequency_of_each_system_in_a_given_phylum = Number_of_phylum_containing_each_system/as.numeric(P_count)) %>% 
-  slice(which.max(system_count)) %>%                                            # To remove duplicates created during the calculation and don't use system_count
+  slice(which.max(system_count)) %>%                                                                            # To remove duplicates created during the calculation and don't use system_count
   select(-accession, -Phylum) %>% 
   filter(bact_defence_system !=  "CRISPR-Cas_padloc") %>% 
   filter(bact_defence_system !=  "DMS") %>% 
@@ -143,7 +143,7 @@ ggsave("../final_figures_and_tables/system1_heatmap_phylum_plot.png", plot = sys
 #######################
 #######################################
 system2_heatmap_family <- data0 %>%
-  filter(Frequency>0) %>%                                                       # filter(system != "N/A") or remove genome having no system
+  filter(Frequency>0) %>%                                                                                     # filter(system != "N/A") or remove genome having no system
   count(Family_count_accession, bact_defence_system) %>% 
   pivot_wider(names_from = bact_defence_system, values_from = n, values_fill = 0) %>% # A tibble: 883 × 53
   pivot_longer(cols = -Family_count_accession, names_to = "bact_defence_system", values_to = "system_count") %>% # A tibble: 45,916 × 3
@@ -153,7 +153,7 @@ system2_heatmap_family <- data0 %>%
   separate(col = "Family_count1", into = c("Family", "F_count"), sep = "\\n") %>% 
   mutate(Number_of_family_containing_each_system = sum(system_count > 0), "Total_number_of_different_system_per_prokaryotic_genomes" = sum(system_count)) %>%
   mutate(Frequency_of_each_system_in_a_given_family = Number_of_family_containing_each_system/as.numeric(F_count)) %>% 
-  slice(which.max(system_count)) %>%                                            # To remove duplicates created during the calculation and don't use system_count
+  slice(which.max(system_count)) %>%                                                                          # To remove duplicates created during the calculation and don't use system_count
   select(-accession, -Family) %>% 
   filter(bact_defence_system !=  "CRISPR-Cas_padloc") %>% 
   filter(bact_defence_system !=  "DMS") %>% 
@@ -206,7 +206,7 @@ ggsave("../final_figures_and_tables/system2_heatmap_family_plot.png", plot = sys
 library(ggh4x)
 
 system3_percentage_of_genomes <- data0 %>% select(AccessionID, bact_defence_system, Frequency) %>% 
-  mutate(Frequency = as.integer(Frequency > 0)) %>%                               #convert logical vector to an integer, TRUE becomes 1, and FALSE becomes 0
+  mutate(Frequency = as.integer(Frequency > 0)) %>%                                                           #convert logical vector to an integer, TRUE becomes 1, and FALSE becomes 0
   distinct() %>% 
   pivot_wider(names_from = AccessionID, values_from = Frequency, values_fill = 0) %>% 
   filter(bact_defence_system != "#N/A") %>% 
@@ -245,7 +245,7 @@ ggsave("../final_figures_and_tables/system3_percentage_of_genomes_barplot.png", 
 # Abundance of CRISPR-Cas and other systems in cold-living bacteria: VENN diagram
 venn_data <- data0 %>% select(AccessionID, bact_defence_system, Frequency) %>% 
   mutate(bact_defence_system = recode(bact_defence_system, "CRISPR-Cas_cctyper" = "CRISPR-Cas")) %>% 
-  mutate(Frequency = as.integer(Frequency > 0)) %>%                               #convert logical vector to an integer, TRUE becomes 1, and FALSE becomes 0
+  mutate(Frequency = as.integer(Frequency > 0)) %>%                                                               #convert logical vector to an integer, TRUE becomes 1, and FALSE becomes 0
   distinct() %>% 
   pivot_wider(names_from = bact_defence_system, values_from = Frequency, values_fill = 0) %>% 
   column_to_rownames("AccessionID") %>% 
@@ -308,7 +308,7 @@ cas3_pie_plot <- ggplot(pie_data, aes(x = "", y = percentage_system_genome, fill
                     labels = c("Genomes with CRISPR-Cas", "Genomes without CRISPR-Cas")) +
   labs(title = "Abundance of CRISPR-Cas systems\nin cold-living bacteria", title.position = "plot") +
   theme(plot.title = element_text(hjust = 0.5, size = 12)) +
-  geom_text(aes(label = paste0(round(percentage_system_genome, 2), "%")), # round to 2 digit
+  geom_text(aes(label = paste0(round(percentage_system_genome, 2), "%")),                                   # round it to 2 digit
             position = position_stack(vjust = 0.5), size = 7) +
   theme(legend.position = "bottom", legend.direction = "horizontal", 
         legend.box = "horizontal",
