@@ -16,8 +16,8 @@ library(tidyverse)
 #Read metadata genomes
 metadata_genomes <- read.csv("..\data\metadata_genomes.txt", sep="\t", header=T) %>% as_tibble() %>% 
   distinct(accession_genbank, .keep_all = TRUE) %>% 
-  filter(classification != "#N/A") %>%                                                  # remove #N/A
-  filter(!grepl("d__Archaea", classification)) %>%                                      # remove archaea
+  filter(classification != "#N/A") %>%                                                  # filter #N/A
+  filter(!grepl("d__Archaea", classification)) %>%                                      # filter archaea
   mutate(gtdb_copy = classification) %>%
   separate(col = gtdb_copy, into = paste0("Column_", 1:7), sep = ";") %>%
   mutate(across(starts_with("Column_2"), ~str_replace(., "_A$|_B$|_F$", ""), .names = "Phylum")) %>% 
