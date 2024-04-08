@@ -1,0 +1,11 @@
+Description of the input files.
+
+metadata_genomes.txt: Tab-separated file containing genomes
+
+CRISPRCasTyper output:
+merged_crisprs_near_cas.tab: CRISPRs part of CRISPR-Cas loci
+metadata_bact_defence_combined.txt: Bacterial defense system and its subtypes
+crispr_type.txt: CRISPR class, type and subtypes
+
+PADLOC output:
+all_padloc.txt: Antiviral defence systems as predicted by PADLOC in prokaryotic genomes
